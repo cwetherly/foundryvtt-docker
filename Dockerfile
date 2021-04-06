@@ -33,6 +33,9 @@ RUN \
     unzip -d dist ${ARCHIVE} 'resources/*'; \
   fi
 
+RUN echo "Modifying main.js to enable plutonium functionality"
+RUN sed -e '/require("init")(process.argv, global.paths, initLogging);/ {' -e 'r plut_mod.js' -e 'd' -e '}' -i dist/resources/app/main.js
+
 FROM node:12-alpine as final-stage
 
 ARG FOUNDRY_UID=421
@@ -50,6 +53,7 @@ ENV FOUNDRY_VERSION=${FOUNDRY_VERSION}
 WORKDIR ${FOUNDRY_HOME}
 
 COPY --from=optional-release-stage /root/dist/ .
+COPY plutonium/plutonium-backend.js ./resources/app/
 COPY \
   src/authenticate.js \
   src/check_health.sh \
